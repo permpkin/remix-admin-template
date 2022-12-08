@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Group {
+  id          String  @id @default(cuid())
+  title       String  @unique
+  description String?
+  status      String  @default("Active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags      Tag[]
+  users     User[]
+  activity  Activity[] @relation("GroupActivity")
+}
+
+model User {
+  id            String  @id @default(cuid())
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  display       String?
+  type          String  @default("Standard")
+  password      String?
+  status        String  @default("Pending")
+  tags          Tag[]
+
+  activity Activity[] @relation("UserActivity")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group   Group?  @relation(fields: [groupId], references: [id])
+  groupId String?
+}
+
+model Activity {
+  id          String @id @default(cuid())
+  type        String @default("Log")
+  description String
+
+  group   Group?  @relation("GroupActivity", fields: [groupId], references: [id])
+  groupId String?
+
+  user   User?   @relation("UserActivity", fields: [userId], references: [id])
+  userId String?
+
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+  type String @default("")
+
+  users     User[]
+  groups    Group[]
+}
+
+model Queue {
+  id    String @id @default(cuid())
+  name  String @unique
+  value String
+}
